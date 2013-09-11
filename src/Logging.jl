@@ -16,22 +16,6 @@ type Logger
     output::IO
 end
 
-const _root = Logger("root", WARNING, STDERR)
-Logger(;args...) = configure(Logger(WARNING, STDERR), args...)
-
-for (fn,lvl,clr) in ((:debug,    DEBUG,    :cyan),
-                     (:info,     INFO,     :blue),
-                     (:warn,     WARNING,  :magenta),
-                     (:err,    ERROR,    :red),
-                     (:critical, CRITICAL, :red))
-
-    @eval function $fn(msg::String, logger = _root)
-        if $lvl >= logger.level
-            Base.print_with_color($clr, logger.output, $lvl, ":", logger.name, ":", msg)
-        end
-    end
-end
-
 function configure(logger=_root; args...)
     for (tag, val) in args
         @match tag begin
@@ -43,6 +27,23 @@ function configure(logger=_root; args...)
     end
 
     logger
+end
+
+Logger(name::String;args...) = configure(Logger(name, WARNING, STDERR); args...)
+
+const _root = Logger("root")
+
+for (fn,lvl,clr) in ((:debug,    DEBUG,    :cyan),
+                     (:info,     INFO,     :blue),
+                     (:warn,     WARNING,  :magenta),
+                     (:err,      ERROR,    :red),
+                     (:critical, CRITICAL, :red))
+
+    @eval function $fn(msg::String, logger = _root)
+        if $lvl >= logger.level
+            Base.print_with_color($(Expr(:quote, clr)), logger.output, string($lvl), ":", logger.name, ":", msg, "\n")
+        end
+    end
 end
 
 
