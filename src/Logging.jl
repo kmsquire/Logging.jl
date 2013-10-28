@@ -41,7 +41,7 @@ for (fn,lvl,clr) in ((:debug,    DEBUG,    :cyan),
 
     @eval function $fn(msg::String, logger = _root)
         if $lvl >= logger.level
-            Base.print_with_color($(Expr(:quote, clr)), logger.output, string($lvl), ":", logger.name, ":", msg, "\n")
+            Base.print_with_color($(Expr(:quote, clr)), logger.output, strftime("%d-%b %H:%M:%S",time()), ":",string($lvl), ":", logger.name, ":", msg, "\n")
         end
     end
 end
