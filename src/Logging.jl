@@ -20,7 +20,7 @@ function configure(logger=_root; args...)
     for (tag, val) in args
         @match tag begin
             :io       => logger.output = val::IO
-            :filename => logger.output = open(val, "w")
+            :filename => logger.output = open(val, "a")
             :level    => logger.level  = val::LogLevel
             unk       => Base.error("Logging: unknown configure argument \"$unk\"")
         end
