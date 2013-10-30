@@ -22,7 +22,6 @@ function Base.convert{T<:Enum}(::Type{T},x::Integer)
     T(x)
 end
 function Base.show{T<:Enum}(io::IO, x::T)
-    print(io, T.name, '(')
     first = true
     for s = T
         if s[2] == x.n
@@ -36,7 +35,6 @@ function Base.show{T<:Enum}(io::IO, x::T)
     if first
         print(io, "invalid enum constant")
     end
-    print(io, ')')    
 end
 Base.names{T<:Enum}(x::Type{T}) = [s[1] for s in T]
 
