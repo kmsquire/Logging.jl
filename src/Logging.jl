@@ -41,12 +41,12 @@ for (fn,lvl,clr) in ((:debug,    DEBUG,    :cyan),
 
     @eval function $fn(msg::String, logger = _root)
         if $lvl >= logger.level
-             logstring = string(strftime("%d-%b %H:%M:%S",time()),":",$lvl, ":",logger.name,":", msg,"\n")
-             if isa(logger.output, Base.TTY)
-            	Base.print_with_color($(Expr(:quote, clr)), logger.output, logstring )
-             else
+            logstring = string(strftime("%d-%b %H:%M:%S",time()),":",$lvl, ":",logger.name,":", msg,"\n")
+            if isa(logger.output, Base.TTY)
+                Base.print_with_color($(Expr(:quote, clr)), logger.output, logstring )
+            else
                 print(logger.output, logstring)
-             end
+            end
         end
     end
 end
