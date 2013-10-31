@@ -5,13 +5,13 @@ using Match
 import Base: show
 
 export debug, info, warn, err, critical, log,
-       @debug, @info, @warn, @error, @critical,
+       @debug, @info, @warn, @err, @error, @critical,
        Logger,
-       LogLevel, DEBUG, INFO, WARNING, ERROR, CRITICAL
+       LogLevel, DEBUG, INFO, WARNING, ERROR, CRITICAL, OFF
 
 include("enum.jl")
 
-@enum LogLevel DEBUG INFO WARNING ERROR CRITICAL
+@enum LogLevel DEBUG INFO WARNING ERROR CRITICAL OFF
 
 type Logger
     name::String
