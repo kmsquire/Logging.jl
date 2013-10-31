@@ -1,7 +1,5 @@
 module Logging
 
-using Match
-
 import Base: show
 
 export debug, info, warn, err, critical, log,
@@ -61,15 +59,13 @@ function configure(logger=_root; args...)
             logger.output = parent.output
         end
     end
-
+    
     for (tag, val) in args
-        @match tag begin
-            :io       => logger.output = val::IO
-            :filename => logger.output = open(val, "a")
-            :level    => logger.level  = val::LogLevel
-            :parent   => nothing # handled above
-            unk       => Base.error("Logging: unknown configure argument \"$unk\"")
-        end
+        tag == :io       ? (logger.output = val::IO) :
+        tag == :filename ? (logger.output = open(val, "a")) :
+        tag == :level    ? (logger.level  = val::LogLevel) :
+        tag == :parent   ?  nothing :  # handled above
+                           (Base.error("Logging: unknown configure argument \"$unk\""))
     end
 
     logger

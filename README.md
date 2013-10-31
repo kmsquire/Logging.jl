@@ -131,7 +131,7 @@ end
 macro_log_test()
 ```
 
-This prevents any of the logging code from being generated:
+This prevents any of the logging code from being generated.
 
 Note that changing the log level later in the code will not have any
 affect on previously evaluated functions, though it does affect future
@@ -160,3 +160,12 @@ macro_log_test()
 @debug("So will this debug message!")
 ```
 
+produces:
+
+```julia
+Setting level=OFF
+
+Setting level=DEBUG
+30-Oct 23:26:16:WARNING:root:This warning message will print
+30-Oct 23:26:16:DEBUG:root:So will this debug message!
+```
