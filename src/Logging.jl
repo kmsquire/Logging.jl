@@ -101,6 +101,14 @@ macro warn(msg...)
     end
 end
 
+macro err(msg...)
+    if Logging.ERROR < Logging._root.level
+        :nothing
+    else
+        :(Logging.err($(esc(msg))...))
+    end
+end
+
 macro error(msg...)
     if Logging.ERROR < Logging._root.level
         :nothing
