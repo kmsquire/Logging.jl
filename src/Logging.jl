@@ -43,6 +43,7 @@ for (fn,lvl,clr) in ((:debug,    DEBUG,    :cyan),
                 Base.print_with_color($(Expr(:quote, clr)), logger.output, logstring )
             else
                 print(logger.output, logstring)
+                flush(logger.output)
             end
         end
     end
