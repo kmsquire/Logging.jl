@@ -1,3 +1,7 @@
+# Based mostly on https://github.com/JuliaLang/julia/pull/2988,
+# with slight modifications.  If that (or something similar)
+# ever lands in base, this can go away.
+
 abstract Enum
 
 Base.typemin{T<:Enum}(x::Type{T}) = T(0)
