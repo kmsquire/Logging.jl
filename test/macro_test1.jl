@@ -1,7 +1,7 @@
 using Logging
 
 println("Setting level=DEBUG")
-Logging.configure(level=DEBUG)
+@Logging.configure(level=DEBUG)
 # Work exactly like the logging functions, 
 # WITH function call overhead
 
@@ -17,6 +17,6 @@ macro_log_test()
 
 println()
 println("Setting level=WARNING")
-Logging.configure(level=WARNING)
+@Logging.configure(level=WARNING)
 
 macro_log_test()

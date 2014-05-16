@@ -12,6 +12,8 @@ If `log_test.jl` contains
 
 ```julia
 using Logging
+# default:
+# Logging.configure(level=WARNING)
 
 function log_test()
     debug("debug message")
@@ -87,11 +89,12 @@ function call even when there is no log output. Logging.jl provides
 macros which work like the functions above, but which remove this
 overhead.
 
-For example, to turn on debugging during development:
+To use the macro versions, you MUST first configure them using
+`@Logging.configure`.
 
 ```julia
 using Logging
-Logging.configure(level=DEBUG)
+@Logging.configure(level=DEBUG)
 
 function macro_log_test()
     @debug("debug message")
@@ -118,7 +121,7 @@ Later, we may decide to turn off logging entirely:
 
 ```julia
 using Logging
-Logging.configure(level=OFF)
+@Logging.configure(level=OFF)
 
 function macro_log_test()
     @debug("debug message")
@@ -140,9 +143,13 @@ evaluation:
 
 ```julia
 using Logging
-Logging.configure(level=OFF)
+println("Setting level=OFF")
+@Logging.configure(level=OFF)
 
 function macro_log_test()
+    # logging is OFF above!
+    # these messages will never produce output
+    # even if the log level is changed
     @debug("debug message")
     @info("info message")
     @warn("warning message")
@@ -156,7 +163,7 @@ println("Setting level=DEBUG")
 Logging.configure(level=DEBUG)
 macro_log_test()
 
-@warn("This warning message will print")
+@warn("This warning message will print.")
 @debug("So will this debug message!")
 ```
 
@@ -164,8 +171,7 @@ produces:
 
 ```julia
 Setting level=OFF
-
 Setting level=DEBUG
-30-Oct 23:26:16:WARNING:root:This warning message will print
+30-Oct 23:26:16:WARNING:root:This warning message will print.
 30-Oct 23:26:16:DEBUG:root:So will this debug message!
 ```

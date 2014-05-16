@@ -3,7 +3,7 @@ module Logging
 import Base: show
 
 export debug, info, warn, err, critical, log,
-       @debug, @info, @warn, @err, @error, @critical,
+       @debug, @info, @warn, @err, @error, @critical, @log,
        Logger,
        LogLevel, DEBUG, INFO, WARNING, ERROR, CRITICAL, OFF
 
@@ -63,64 +63,23 @@ function configure(logger=_root; args...)
     
     for (tag, val) in args
         tag == :io       ? (logger.output = val::IO) :
+        tag == :output   ? (logger.output = val::IO) :
         tag == :filename ? (logger.output = open(val, "a")) :
         tag == :level    ? (logger.level  = val::LogLevel) :
         tag == :parent   ?  nothing :  # handled above
-                           (Base.error("Logging: unknown configure argument \"$unk\""))
+                           (Base.error("Logging: unknown configure argument \"$tag\""))
     end
 
     logger
 end
 
-# Would love to generate these macros like the functions above, but it got too complicated
-
-macro debug(msg...)
-    if Logging.DEBUG < Logging._root.level
-        :nothing
-    else
-        :(Logging.debug($(esc(msg))...))
+macro configure(args...)
+    quote
+        logger = Logging.configure($(args...))
+        include(joinpath(Pkg.dir("Logging"), "src", "logging_macros.jl"))
+        logger
     end
 end
-
-macro info(msg...)
-    if Logging.INFO < Logging._root.level
-        :nothing
-    else
-        :(Logging.info($(esc(msg))...))
-    end
-end
-
-macro warn(msg...)
-    if Logging.WARNING < Logging._root.level
-        :nothing
-    else
-        :(Logging.warn($(esc(msg))...))
-    end
-end
-
-macro err(msg...)
-    if Logging.ERROR < Logging._root.level
-        :nothing
-    else
-        :(Logging.err($(esc(msg))...))
-    end
-end
-
-macro error(msg...)
-    if Logging.ERROR < Logging._root.level
-        :nothing
-    else
-        :(Logging.err($(esc(msg))...))
-    end
-end
-
-macro critical(msg...)
-    if Logging.CRITICAL < Logging._root.level
-        :nothing
-    else
-        :(Logging.critical($(esc(msg))...))
-    end
-end
-
 
 end # module
+
