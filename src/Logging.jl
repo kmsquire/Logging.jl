@@ -52,6 +52,12 @@ for (fn,lvl,clr) in ((:debug,    DEBUG,    :cyan),
 
 end
 
+#Log an error in a catch block with level ERROR
+function catch_err(e)
+   bt=catch_backtrace()
+   err(sprint(io->Base.showerror(io, e, bt)))
+end
+
 function configure(logger=_root; args...)
     for (tag, val) in args
         if tag == :parent
