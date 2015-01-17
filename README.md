@@ -181,7 +181,7 @@ Notes
 * By default, `Logging.info` masks `Base.info`.  However, if `Base.info` is called before
   `using Logging`, `info` will always refer to the `Base` version.
 
-```julia
+  ```julia
 julia> info("Here's some info.")
 INFO: Here's some info.
 
@@ -200,7 +200,7 @@ julia> Logging.info("You can still fully qualify Logging.info.")
 
   If this is not desirable, you may call `@Logging.configure` with `override_info=true`:
 
-```julia
+  ```julia
 julia> info("Here's some info again.")
 INFO: Here's some info again.
 
