@@ -1,6 +1,6 @@
 module Logging
 
-import Base: show, info
+import Base: show
 
 export debug, info, warn, err, critical, log,
        @debug, @info, @warn, @err, @error, @critical, @log,
@@ -52,8 +52,6 @@ for (fn,lvl,clr) in ((:debug,    DEBUG,    :cyan),
 
 end
 
-info(msg::AbstractString...) = info(_root, msg...) 
-
 function configure(logger=_root; args...)
     for (tag, val) in args
         if tag == :parent
@@ -64,20 +62,29 @@ function configure(logger=_root; args...)
     end
     
     for (tag, val) in args
-        tag == :io       ? (logger.output = val::IO) :
-        tag == :output   ? (logger.output = val::IO) :
-        tag == :filename ? (logger.output = open(val, "a")) :
-        tag == :level    ? (logger.level  = val::LogLevel) :
-        tag == :parent   ?  nothing :  # handled above
-                           (Base.error("Logging: unknown configure argument \"$tag\""))
+        tag == :io            ? (logger.output = val::IO) :
+        tag == :output        ? (logger.output = val::IO) :
+        tag == :filename      ? (logger.output = open(val, "a")) :
+        tag == :level         ? (logger.level  = val::LogLevel) :
+        tag == :override_info ? nothing :  # handled below
+        tag == :parent        ? nothing :  # handled above
+                                (Base.error("Logging: unknown configure argument \"$tag\""))
     end
 
     logger
 end
 
+override_info(;args...) = (:override_info, true) in args
+
 macro configure(args...)
+    _args = gensym()
     quote
         logger = Logging.configure($(args...))
+        if Logging.override_info($(args...))
+            function Base.info(msg::String...)
+                Logging.info(Logging._root, msg...)
+            end
+        end
         include(joinpath(Pkg.dir("Logging"), "src", "logging_macros.jl"))
         logger
     end

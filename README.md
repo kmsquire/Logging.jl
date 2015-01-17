@@ -175,3 +175,42 @@ Setting level=DEBUG
 30-Oct 23:26:16:WARNING:root:This warning message will print.
 30-Oct 23:26:16:DEBUG:root:So will this debug message!
 ```
+
+Notes
+-----
+* By default, `Logging.info` masks `Base.info`.  However, if `Base.info` is called before
+  `using Logging`, `info` will always refer to the `Base` version.
+
+```julia
+julia> info("Here's some info.")
+INFO: Here's some info.
+
+julia> using Logging
+Warning: using Logging.info in module Main conflicts with an existing identifier.
+
+julia> @Logging.configure(level=Logging.INFO)
+Logger(root,INFO,TTY(open, 0 bytes waiting),root)
+
+julia> info("Still using Base.info")
+INFO: Still using Base.info
+
+julia> Logging.info("You can still fully qualify Logging.info.")
+17-Jan 13:19:56:INFO:root:You can still fully qualify Logging.info.
+```
+
+  If this is not desirable, you may call `@Logging.configure` with `override_info=true`:
+
+```julia
+julia> info("Here's some info again.")
+INFO: Here's some info again.
+
+julia> using Logging
+Warning: using Logging.info in module Main conflicts with an existing identifier.
+
+julia> @Logging.configure(level=Logging.INFO, override_info=true)
+Warning: Method definition info(AbstractString...,) in module Base at util.jl:216 overwritten in module Main at /Users/kevin/.julia/v0.4/Logging/src/Logging.jl:85.
+Logger(root,INFO,TTY(open, 0 bytes waiting),root)
+
+julia> info("Now we're using Logging.info")
+17-Jan 13:17:20:INFO:root:Now we're using Logging.info
+```
