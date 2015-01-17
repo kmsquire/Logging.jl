@@ -1,6 +1,6 @@
 module Logging
 
-import Base: show
+import Base: show, info
 
 export debug, info, warn, err, critical, log,
        @debug, @info, @warn, @err, @error, @critical, @log,
@@ -51,6 +51,8 @@ for (fn,lvl,clr) in ((:debug,    DEBUG,    :cyan),
     @eval $fn(msg...) = $fn(_root, msg...)
 
 end
+
+info(msg::AbstractString...) = info(_root, msg...) 
 
 function configure(logger=_root; args...)
     for (tag, val) in args
