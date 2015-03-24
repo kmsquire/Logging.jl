@@ -48,7 +48,7 @@ Logging.configure(level=CRITICAL)
 log_test()
 ```
 
-Running this gives 
+Running this gives
 
 ```
 julia> include("log_test.jl")
@@ -80,6 +80,25 @@ Setting level=CRITICAL
 
 At the Julia prompt, the messages will display in color (debug=cyan,
 info=blue, warning=purple, error=red, critical=red).
+
+It is possible to change the stream the logger prints to. For example,
+to print to a file:
+
+```julia
+julia> Logging.configure(output=open("logfile.log", "a"))
+julia> log_test()
+julia> readlines(open("logfile.log"))
+3-element Array{Union(ASCIIString,UTF8String),1}:
+ "24-mar 18:40:24:WARNING:root:warning message\n"
+ "24-mar 18:40:24:ERROR:root:error message\n"
+ "24-mar 18:40:24:CRITICAL:root:critical message\n"
+```
+
+Since it is common to log to files, there is a shortcut:
+
+```julia
+julia> Logging.configure(filename="logfile.log")
+```
 
 Logging Macros
 --------------
@@ -174,6 +193,45 @@ Setting level=OFF
 Setting level=DEBUG
 30-Oct 23:26:16:WARNING:root:This warning message will print.
 30-Oct 23:26:16:DEBUG:root:So will this debug message!
+```
+
+More advanced usage
+-------------------
+
+It is possible to create multiple loggers that each have their own log
+levels and can write to different streams. A specific logger is used
+by giving it as the first argument to the logger functions or macros.
+
+```julia
+julia> loggerA = Logger("loggerA");
+
+julia> Logging.configure(loggerA, level=ERROR);
+
+julia> Logging.configure(loggerA, filename="loggerA.log");
+
+julia> loggerB = Logger("loggerB");
+
+julia> Logging.configure(loggerB, level=DEBUG);
+
+julia> critical(loggerA, "critical message from loggerA");
+
+julia> readlines(open("loggerA.log"))
+1-element Array{Union(ASCIIString,UTF8String),1}:
+ "24-mar 18:48:23:CRITICAL:loggerA:critical message form loggerA\n"
+
+julia> critical(loggerB, "critical message from loggerB");
+24-mar 18:49:15:CRITICAL:loggerB:critical message from loggerB
+```
+
+A logger can be created with a parent logger. A logger with a parent inherits
+the configuration of the parent.
+
+```julia
+julia> mum_logger = Logger("Mum");
+julia> Logging.configure(mum_logger, level=INFO);
+julia> son_logger = Logger("Son", parent=mum_logger);
+julia> son_logger.level
+INFO
 ```
 
 Notes
