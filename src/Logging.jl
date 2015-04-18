@@ -1,5 +1,7 @@
 module Logging
 
+using Compat
+
 import Base: show
 
 export debug, info, warn, err, critical, log,
@@ -7,9 +9,17 @@ export debug, info, warn, err, critical, log,
        Logger,
        LogLevel, DEBUG, INFO, WARNING, ERROR, CRITICAL, OFF
 
-include("enum.jl")
+if VERSION < v"0.4.0-dev+3587"
+    include("enum.jl")
+end
 
 @enum LogLevel DEBUG INFO WARNING ERROR CRITICAL OFF
+
+try
+    DEBUG < CRITICAL
+catch
+    Base.isless(x::LogLevel, y::LogLevel) = isless(x.val, y.val)
+end
 
 type Logger
     name::String
@@ -38,7 +48,7 @@ for (fn,lvl,clr) in ((:debug,    DEBUG,    :cyan),
 
     @eval function $fn(logger::Logger, msg...)
         if $lvl >= logger.level
-            logstring = string(strftime("%d-%b %H:%M:%S",time()),":",$lvl, ":",logger.name,":", msg...,"\n")
+            logstring = string(Libc.strftime("%d-%b %H:%M:%S",time()),":",$lvl, ":",logger.name,":", msg...,"\n")
             if isa(logger.output, Base.TTY)
                 Base.print_with_color($(Expr(:quote, clr)), logger.output, logstring )
             else
