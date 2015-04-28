@@ -22,10 +22,11 @@ catch
 end
 
 const OLD_CONVERSION_PATTERN     = "%d{%d-%b %H:%M:%S}:%p:%t:%m%n"
-const BASIC_CONVERSION_PATTERN   = "%R %p %c %x: %m%n"
+const BASIC_CONVERSION_PATTERN   = "%r %p %c: %m%n"
 const DEFAULT_CONVERSION_PATTERN = "%m%n"
 const SIMPLE_CONVERSION_PATTERN  = "%p - %m%n"
-const TTCC_CONVERSION_PATTERN    = "%r [%t] %p %c %x - %m%n"
+const TTCC_CONVERSION_PATTERN    = "%r [%t] %-5p %c - %m%n"
+const INITIALIZED_AT = time_ns()
 
 type Logger
     name::String
@@ -33,10 +34,9 @@ type Logger
     output::IO
     parent::Logger
     pattern::String
-    timestamp::Uint64
 
     Logger(name::String, level::LogLevel, output::IO, parent::Logger, pattern::String) =
-        new(name, level, output, parent, pattern, time_ns())
+        new(name, level, output, parent, pattern)
     Logger(name::String, level::LogLevel, output::IO, parent::Logger) =
         Logger(name, level, output, parent, DEFAULT_CONVERSION_PATTERN)
     function Logger(name::String, level::LogLevel, output::IO)
@@ -46,7 +46,6 @@ type Logger
         x.output=output
         x.parent=x
         x.pattern=DEFAULT_CONVERSION_PATTERN
-        x.timestamp = time_ns()
         x
     end
 end
@@ -60,7 +59,7 @@ const _root = Logger("root", WARNING, STDERR)
 Logger(name::String;args...) = configure(Logger(name, WARNING, STDERR, _root); args...)
 Logger() = Logger("logger")
 
-include("formater.jl")
+include("formatter.jl")
 
 for (fn,lvl,clr) in ((:debug,    DEBUG,    :cyan),
                      (:info,     INFO,     :blue),
@@ -90,6 +89,7 @@ function configure(logger=_root; args...)
             logger.parent = parent = val::Logger
             logger.level = parent.level
             logger.output = parent.output
+            logger.pattern = parent.pattern
         end
     end
 

@@ -195,6 +195,55 @@ Setting level=DEBUG
 30-Oct 23:26:16:DEBUG:root:So will this debug message!
 ```
 
+Formatting Output
+-----------------
+Logging messages can be formatter in a manner closely related to the pattern layout configuration of [log4j](http://logging.apache.org/log4j/2.x/manual/layouts.html#PatternLayout). The format of the result depends on the conversion pattern. A conversion pattern is composed of literal text and format control expressions called conversion specifiers.
+
+Note that any literal text, including **Special Character**s, may be included in the conversion pattern. **Special Characters** include \t, \n, \r, \f. Use \\\\ to insert a single backslash into the output.
+
+Each conversion specifier starts with a percent sign (%) and is followed by optional format modifiers and a conversion character. The conversion character specifies the type of data, e.g. category, priority, date, thread name. The format modifiers control such things as field width, padding, left and right justification. The following is a simple example.
+
+Let the conversion pattern be "%-5p [%c]: %m%n". Following calls
+
+```julia
+using Logging
+Logging.configure(format="%-5p [%c]: %m%n", level=DEBUG)
+debug("Message 1")
+warn("Message 2")
+```
+would yield the output
+```
+DEBUG [main]: Message 1
+WARN  [main]: Message 2
+```
+
+#### Conversion Patterns
+The conversions that are provided with `Logging` are:
+| Pattern | Description |
+|---------|-------------|
+|**c**| Outputs the name of the logger that published the logging event.|
+|**C**|Outputs the fully qualified module name of the caller issuing the logging request.|
+|**d**|Outputs the date of the logging event. The date conversion specifier may be followed by a set of braces containing a date and time pattern string in [`sprintf` format](http://www.cplusplus.com/reference/ctime/strftime/).|
+|**F**|Outputs the file name where the logging request was issued. *Generating the file information (location information) is an expensive operation and may impact performance. Use with caution.*|
+|**l**|Outputs location information of the caller which generated the logging event. *Generating location information is an expensive operation and may impact performance. Use with caution.*|
+|**L**|Outputs the line number from where the logging request was issued. *Generating line number information is an expensive operation and may impact performance. Use with caution.*|
+|**m**|Outputs the application supplied message associated with the logging event.|
+|**M**|Outputs the function name where the logging request was issued. *Generating the method name of the caller (location information) is an expensive operation and may impact performance. Use with caution.*|
+|**n**|Outputs the platform dependent line separator character or characters.|
+|**p**|Outputs the level of the logging event.|
+|**r**|Outputs the number of milliseconds elapsed since the Logging package was initialized until the creation of the logging event.|
+|**t**|Outputs the process identifier that generated the logging event.|
+|**%**|The sequence %% outputs a single percent sign.|
+
+#### Pattern Converters
+|Format modifier|left justify|minimum width|maximum width|comment|
+|:-------------:|:----------:|:-----------:|:-----------:|:------|
+|%20c|false|20|none|Left pad with spaces if the category name is less than 20 characters long.|
+|%-20c|true|20|none|Right pad with spaces if the category name is less than 20 characters long.|
+|%.30c|NA|none|30|Truncate from the beginning if the category name is longer than 30 characters.|
+|%20.30c|false|20|30|Left pad with spaces if the category name is shorter than 20 characters. However, if category name is longer than 30 characters, then truncate from the beginning.|
+|%-20.30c|true|20|30|Right pad with spaces if the category name is shorter than 20 characters. However, if category name is longer than 30 characters, then truncate from the beginning.|
+
 More advanced usage
 -------------------
 

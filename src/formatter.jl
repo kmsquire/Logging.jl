@@ -2,13 +2,7 @@ const CONVERSION_REGEXP = r"%(((-?\d+)?(.\d+)?)(c|C|F|l|L|m|M|n|p|r|t|x|X|%|d({.
 const DEFAULT_TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
 const BACKTRACE_CONVERSIONS = Set(Any['l', 'L', 'M', 'F'])
 
-const SHORT_NAMES = @compat Dict{LogLevel,String}(
-    DEBUG => "DEBUG",
-    INFO => "INFO",
-    WARNING => "WARN",
-    ERROR => "ERROR",
-    CRITICAL => "FATAL"
-)
+const SHORT_NAMES = ["DEBUG", "INFO", "WARN", "ERROR", "FATAL"]
 
 function getbacktrace()
     btout = @compat Tuple{String,String,Int}[]
@@ -59,7 +53,13 @@ function formatPattern(logger::Logger, level::LogLevel, msg...)
             push!(logstring, 0x25)
         else
             output = if sym == 'c' # category name (or logger name)
-                logger.name
+                category = logger.name
+                leaf = logger
+                while leaf != leaf.parent
+                    leaf = leaf.parent
+                    category = "$(leaf.name).$category"
+                end
+                category
             elseif sym == 'C' # module
                 string(current_module())
             elseif sym == 'd' # date
@@ -75,9 +75,9 @@ function formatPattern(logger::Logger, level::LogLevel, msg...)
             elseif sym == 'M' # function
                 bt != nothing ? string(bt[1]) : "NA"
             elseif sym == 'p' # level
-                SHORT_NAMES[level]
+                SHORT_NAMES[convert(Int, level)+1]
             elseif sym == 'r' # time elapsed (milliseconds)
-                string(@compat round(Int, (time_ns()-logger.timestamp)/10e5))
+                string(@compat round(Int, (time_ns()-INITIALIZED_AT)/10e6))
             elseif sym == 't' # thread or PID
                 string(getpid())
             else
