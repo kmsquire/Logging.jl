@@ -2,7 +2,7 @@ module Logging
 
 using Compat
 
-import Base: show
+import Base: show, info, warn
 
 export debug, info, warn, err, critical, log,
        @debug, @info, @warn, @err, @error, @critical, @log,
@@ -31,13 +31,13 @@ type Logger
     Logger(name::String, level::LogLevel, output::IO) = (x = new(); x.name = name; x.level=level; x.output=output; x.parent=x)
 end
 
-show(io::IO, logger::Logger) = print(io, "Logger(", join([logger.name, 
-                                                          logger.level, 
+show(io::IO, logger::Logger) = print(io, "Logger(", join([logger.name,
+                                                          logger.level,
                                                           logger.output,
                                                           logger.parent.name], ","), ")")
 
 const _root = Logger("root", WARNING, STDERR)
-Logger(name::String;args...) = configure(Logger(name, WARNING, STDERR, _root); args...)
+Logger(name::String;args...) = configure(Logger(name, _root.level, _root.output, _root); args...)
 Logger() = Logger("logger")
 
 for (fn,lvl,clr) in ((:debug,    DEBUG,    :cyan),
@@ -70,7 +70,7 @@ function configure(logger=_root; args...)
             logger.output = parent.output
         end
     end
-    
+
     for (tag, val) in args
         tag == :io            ? (logger.output = val::IO) :
         tag == :output        ? (logger.output = val::IO) :
