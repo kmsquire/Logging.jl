@@ -233,6 +233,22 @@ julia> son_logger = Logger("Son", parent=mum_logger);
 julia> son_logger.level
 INFO
 ```
+If during the logger creation the `parent` parameter is not specified
+then the logger inherits all properties of the `root` logger
+unless specified otherwise explicitly.
+
+```julia
+julia> using Logging
+
+julia> Logging.configure(level=DEBUG) # root has DEBUG level
+Logger(root,DEBUG,TTY(open, 0 bytes waiting),root)
+
+julia> logger1 = Logger("logger1") # logger1 has DEBUG level as well
+Logger(logger1,DEBUG,TTY(open, 0 bytes waiting),root)
+
+julia> logger2 = Logger("logger2", level=INFO) # logger2 has INFO level
+Logger(logger2,INFO,TTY(open, 0 bytes waiting),root)
+```
 
 Notes
 -----
