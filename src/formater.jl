@@ -1,6 +1,6 @@
 const CONVERSION_REGEXP = r"%(((-?\d+)?(.\d+)?)(c|C|F|l|L|m|M|n|p|r|t|x|X|%|d({.+})*))"
 const DEFAULT_TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
-const BACKTRACE_CONVERSIONS = Set('l', 'L', 'M', 'F')
+const BACKTRACE_CONVERSIONS = Set(Any['l', 'L', 'M', 'F'])
 
 const SHORT_NAMES = @compat Dict{LogLevel,String}(
     DEBUG => "DEBUG",
@@ -41,9 +41,9 @@ function formatPattern(logger::Logger, level::LogLevel, msg...)
         append!(logstring, logger.pattern[s:(m.offset-1)].data)
 
         # maximum width
-        sym_maxw = m.captures[4] != nothing ? try parseint(m.captures[4][2:end]); catch 0 end : 0
+        sym_maxw = m.captures[4] != nothing ? try @compat parse(Int, m.captures[4][2:end]); catch 0 end : 0
         # minimum width
-        sym_minw = m.captures[3] != nothing ? try parseint(m.captures[3]); catch 0 end : 0
+        sym_minw = m.captures[3] != nothing ? try @compat parse(Int, m.captures[3]); catch 0 end : 0
         # formating symbol
         sym = m.captures[5][1]
 
@@ -77,7 +77,7 @@ function formatPattern(logger::Logger, level::LogLevel, msg...)
             elseif sym == 'p' # level
                 SHORT_NAMES[level]
             elseif sym == 'r' # time elapsed (milliseconds)
-                string(int((time_ns()-logger.timestamp)/10e5))
+                string(@compat round(Int, (time_ns()-logger.timestamp)/10e5))
             elseif sym == 't' # thread or PID
                 string(getpid())
             else
