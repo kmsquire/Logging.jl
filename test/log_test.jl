@@ -1,4 +1,5 @@
-using Logging
+
+importall Logging
 
 # So that macro tests work
 # Otherwise, log_test2 uses the default log level of WARNING
