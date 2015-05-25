@@ -1,3 +1,4 @@
+# (use importall, rather than using, to override Base.info, Base.warn)
 
 importall Logging
 
