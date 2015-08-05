@@ -87,7 +87,7 @@ macro enum(T,syms...)
         if max(abs(lo),abs(hi)) < typemax(Uint32)
             enumT = Uint32
         else
-            enumT = Uint64
+            enumT = UInt64
         end
     end
     blk = quote
