@@ -2,7 +2,7 @@ module Logging
 
 using Compat
 
-import Base: show
+import Base: show, info, warn
 
 export debug, info, warn, err, critical, log,
        @debug, @info, @warn, @err, @error, @critical, @log,
