@@ -22,22 +22,22 @@ catch
 end
 
 type Logger
-    name::String
+    name::AbstractString
     level::LogLevel
     output::IO
     parent::Logger
 
-    Logger(name::String, level::LogLevel, output::IO, parent::Logger) = new(name, level, output, parent)
-    Logger(name::String, level::LogLevel, output::IO) = (x = new(); x.name = name; x.level=level; x.output=output; x.parent=x)
+    Logger(name::AbstractString, level::LogLevel, output::IO, parent::Logger) = new(name, level, output, parent)
+    Logger(name::AbstractString, level::LogLevel, output::IO) = (x = new(); x.name = name; x.level=level; x.output=output; x.parent=x)
 end
 
-show(io::IO, logger::Logger) = print(io, "Logger(", join([logger.name, 
-                                                          logger.level, 
+show(io::IO, logger::Logger) = print(io, "Logger(", join([logger.name,
+                                                          logger.level,
                                                           logger.output,
                                                           logger.parent.name], ","), ")")
 
 const _root = Logger("root", WARNING, STDERR)
-Logger(name::String;args...) = configure(Logger(name, WARNING, STDERR, _root); args...)
+Logger(name::AbstractString;args...) = configure(Logger(name, WARNING, STDERR, _root); args...)
 Logger() = Logger("logger")
 
 for (fn,lvl,clr) in ((:debug,    DEBUG,    :cyan),
@@ -70,7 +70,7 @@ function configure(logger=_root; args...)
             logger.output = parent.output
         end
     end
-    
+
     for (tag, val) in args
         tag == :io            ? (logger.output = val::IO) :
         tag == :output        ? (logger.output = val::IO) :
@@ -91,7 +91,7 @@ macro configure(args...)
     quote
         logger = Logging.configure($(args...))
         if Logging.override_info($(args...))
-            function Base.info(msg::String...)
+            function Base.info(msg::AbstractString...)
                 Logging.info(Logging._root, msg...)
             end
         end
@@ -101,4 +101,3 @@ macro configure(args...)
 end
 
 end # module
-
