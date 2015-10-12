@@ -41,8 +41,8 @@ Logger(name::AbstractString;args...) = configure(Logger(name, WARNING, STDERR, _
 Logger() = Logger("logger")
 
 for (fn,lvl,clr) in ((:debug,    DEBUG,    :cyan),
-                     (:info,     INFO,     :blue),
-                     (:warn,     WARNING,  :magenta),
+                     #(:info,     INFO,     :blue),
+                     #(:warn,     WARNING,  :magenta),
                      (:err,      ERROR,    :red),
                      (:critical, CRITICAL, :red))
 
