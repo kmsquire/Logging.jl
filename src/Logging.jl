@@ -1,6 +1,7 @@
 module Logging
 
 using Compat
+using HiRedis
 
 import Base: show, info, warn
 
@@ -41,12 +42,13 @@ Logger(name::AbstractString;args...) = configure(Logger(name, WARNING, STDERR, _
 Logger() = Logger("logger")
 
 for (fn,lvl,clr) in ((:debug,    DEBUG,    :cyan),
-                     (:info,     INFO,     :blue),
-                     (:warn,     WARNING,  :magenta),
+                     #(:info,     INFO,     :blue),
+                     #(:warn,     WARNING,  :magenta),
                      (:err,      ERROR,    :red),
                      (:critical, CRITICAL, :red))
 
     @eval function $fn(logger::Logger, msg...)
+        conn = getRedisConn()
         if $lvl >= logger.level
             logstring = string(Libc.strftime("%d-%b %H:%M:%S",time()),":",$lvl, ":",logger.name,":", msg...,"\n")
             if isa(logger.output, Base.TTY)
@@ -56,6 +58,7 @@ for (fn,lvl,clr) in ((:debug,    DEBUG,    :cyan),
                 flush(logger.output)
             end
         end
+        closeRedisConn(conn)
     end
 
     @eval $fn(msg...) = $fn(_root, msg...)
