@@ -3,7 +3,6 @@ module Logging
 using Compat
 using HiRedis
 
-
 import Base: show, info, warn
 
 export debug, info, warn, err, critical, log,
