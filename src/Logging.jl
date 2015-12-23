@@ -25,15 +25,17 @@ type Logger
     name::AbstractString
     level::LogLevel
     output::IO
+    moreinfo::Bool
     parent::Logger
 
-    Logger(name::AbstractString, level::LogLevel, output::IO, parent::Logger) = new(name, level, output, parent)
-    Logger(name::AbstractString, level::LogLevel, output::IO) = (x = new(); x.name = name; x.level=level; x.output=output; x.parent=x)
+    Logger(name::AbstractString, level::LogLevel, output::IO, parent::Logger) = new(name, level, output, moreinfo, parent)
+    Logger(name::AbstractString, level::LogLevel, output::IO) = (x = new(); x.name = name; x.level=level; x.output=output; x.moreinfo=true; x.parent=x)
 end
 
 show(io::IO, logger::Logger) = print(io, "Logger(", join([logger.name,
                                                           logger.level,
                                                           logger.output,
+							  logger.moreinfo,
                                                           logger.parent.name], ","), ")")
 
 const _root = Logger("root", WARNING, STDERR)
@@ -48,7 +50,11 @@ for (fn,lvl,clr) in ((:debug,    DEBUG,    :cyan),
 
     @eval function $fn(logger::Logger, msg...)
         if $lvl >= logger.level
-            logstring = string(Libc.strftime("%d-%b %H:%M:%S",time()),":",$lvl, ":",logger.name,":", msg...,"\n")
+	    if logger.moreinfo
+	            logstring = string(Libc.strftime("%d-%b %H:%M:%S",time()),":",$lvl, ":",logger.name,":", msg...,"\n")
+	    else
+		    logstring = string($lvl, ": ", msg...,"\n")
+	    end
             if isa(logger.output, Base.TTY)
                 Base.print_with_color($(Expr(:quote, clr)), logger.output, logstring )
             else
@@ -68,6 +74,7 @@ function configure(logger=_root; args...)
             logger.parent = parent = val::Logger
             logger.level = parent.level
             logger.output = parent.output
+	    logger.moreinfo = parent.moreinfo
         end
     end
 
@@ -76,6 +83,7 @@ function configure(logger=_root; args...)
         tag == :output        ? (logger.output = val::IO) :
         tag == :filename      ? (logger.output = open(val, "a")) :
         tag == :level         ? (logger.level  = val::LogLevel) :
+	tag == :moreinfo      ? (logger.moreinfo = val::Bool) :
         tag == :override_info ? nothing :  # handled below
         tag == :parent        ? nothing :  # handled above
                                 (Base.error("Logging: unknown configure argument \"$tag\""))
