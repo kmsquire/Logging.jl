@@ -86,7 +86,7 @@ show(io::IO, logger::Logger) = print(io, "Logger(", join([logger.name,
                                                           logger.parent.name], ","), ")")
 
 const _root = Logger("root", WARNING, STDERR)
-Logger(name::AbstractString;args...) = configure(Logger(name, WARNING, [STDERR], _root); args...)
+Logger(name::AbstractString;args...) = configure(Logger(name, WARNING, STDERR, _root); args...)
 Logger() = Logger("logger")
 
 write_log(syslog::SysLog, color::Symbol, msg::AbstractString) = send(syslog.socket, syslog.ip, syslog.port, length(msg) > syslog.maxlength ? msg[1:syslog.maxlength] : msg)
