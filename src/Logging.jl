@@ -1,8 +1,5 @@
 module Logging
 
-using Compat
-using Compat.Libc: strftime
-
 import Base: show, info, warn
 
 export debug, info, warn, err, critical, log,
@@ -12,17 +9,7 @@ export debug, info, warn, err, critical, log,
        LogFacility,
        SysLog
 
-if VERSION < v"0.4.0-dev+3587"
-    include("enum.jl")
-end
-
 @enum LogLevel OFF=-1 CRITICAL=2 ERROR WARNING INFO=6 DEBUG
-
-try
-    DEBUG < CRITICAL
-catch
-    Base.isless(x::LogLevel, y::LogLevel) = isless(x.val, y.val)
-end
 
 function Base.convert(::Type{LogLevel}, x::AbstractString)
     Dict("OFF"=>OFF,
@@ -35,12 +22,6 @@ end
 
 @enum LogFacility LOG_KERN LOG_USER LOG_MAIL LOG_DAEMON LOG_AUTH LOG_SYSLOG LOG_LPR LOG_NEWS LOG_UUCP LOG_CRON LOG_AUTHPRIV LOG_LOCAL0=16 LOG_LOCAL1 LOG_LOCAL2 LOG_LOCAL3 LOG_LOCAL4 LOG_LOCAL5 LOG_LOCAL6 LOG_LOCAL7
 
-try
-    LOG_KERN < LOG_USER
-catch
-    Base.isless(x::LogFacility, y::LogFacility) = isless(x.val, y.val)
-end
-
 type SysLog
     socket::UDPSocket
     ip::IPv4
@@ -50,23 +31,23 @@ type SysLog
     user::AbstractString
     maxlength::UInt16
 
-    SysLog(host::AbstractString, 
-           port::Int, 
-           facility::LogFacility=LOG_USER, 
-           machine::AbstractString=gethostname(), 
-           user::AbstractString=Base.source_path()==nothing ? "" : basename(Base.source_path()), 
+    SysLog(host::AbstractString,
+           port::Int,
+           facility::LogFacility=LOG_USER,
+           machine::AbstractString=gethostname(),
+           user::AbstractString=Base.source_path()==nothing ? "" : basename(Base.source_path()),
            maxlength::Int=1024) = new(
-        UDPSocket(), 
-        getaddrinfo(host), 
-        (@compat UInt16(port)), 
-        facility, 
-        machine, 
-        user, 
-        (@compat UInt16(maxlength))
+        UDPSocket(),
+        getaddrinfo(host),
+        UInt16(port),
+        facility,
+        machine,
+        user,
+        UInt16(maxlength)
     )
 end
 
-LogOutput = @compat Union{IO,SysLog}
+LogOutput = Union{IO,SysLog}
 
 type Logger
     name::AbstractString
@@ -96,13 +77,13 @@ write_log(output::Base.TTY, color::Symbol, msg::AbstractString) = Base.print_wit
 function log(syslog::SysLog, level::LogLevel, color::Symbol, logger_name::AbstractString, msg...)
     # syslog needs a timestamp in the form: YYYY-MM-DDTHH:MM:SS-TZ:TZ
     t = time()
-    timestamp = string(strftime("%Y-%m-%dT%H:%M:%S",t), strftime("%z",t)[1:end-2], ":", strftime("%z",t)[end-1:end])
-    logstring = string("<", ((@compat UInt16(syslog.facility)) << 3) + (@compat UInt16(level)), ">1 ", timestamp, " ", syslog.machine, " ", syslog.user, " - - - ", level, ":", logger_name,":", msg...)
+    timestamp = string(Libc.strftime("%Y-%m-%dT%H:%M:%S",t), Libc.strftime("%z",t)[1:end-2], ":", Libc.strftime("%z",t)[end-1:end])
+    logstring = string("<", (UInt16(syslog.facility) << 3) + UInt16(level), ">1 ", timestamp, " ", syslog.machine, " ", syslog.user, " - - - ", level, ":", logger_name,":", msg...)
     write_log(syslog, color, logstring)
 end
 
 function log{T<:IO}(output::T, level::LogLevel, color::Symbol, logger_name::AbstractString, msg...)
-    logstring = string(strftime("%d-%b %H:%M:%S",time()),":",level, ":",logger_name,":", msg...,"\n")
+    logstring = string(Libc.strftime("%d-%b %H:%M:%S",time()),":",level, ":",logger_name,":", msg...,"\n")
     write_log(output, color, logstring)
 end
 
