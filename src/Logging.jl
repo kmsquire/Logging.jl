@@ -57,8 +57,8 @@ type Logger
 
     Logger(name::AbstractString, level::LogLevel, output::IO, parent::Logger) = new(name, level, [output], parent)
     Logger(name::AbstractString, level::LogLevel, output::IO) = (x = new(); x.name = name; x.level=level; x.output=[output]; x.parent=x)
-    Logger(name::AbstractString, level::LogLevel, output::Array{LogOutput,1}, parent::Logger) = new(name, level, output, parent)
-    Logger(name::AbstractString, level::LogLevel, output::Array{LogOutput,1}) = (x = new(); x.name = name; x.level=level; x.output=output; x.parent=x)
+    Logger{T<:LogOutput}(name::AbstractString, level::LogLevel, output::Array{T,1}, parent::Logger) = new(name, level, output, parent)
+    Logger{T<:LogOutput}(name::AbstractString, level::LogLevel, output::Array{T,1}) = (x = new(); x.name = name; x.level=level; x.output=output; x.parent=x)
 end
 
 show(io::IO, logger::Logger) = print(io, "Logger(", join([logger.name,
