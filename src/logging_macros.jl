@@ -13,8 +13,8 @@ for (mac,fn,lvl) in ((:debug,    :(Logging.debug),    Logging.DEBUG),
         else
             level = Logging._root.level
         end
-        
-        if $lvl < level
+
+        if $lvl > level
             :nothing
         else
             Expr(:call, $fn, msg...)
