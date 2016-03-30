@@ -61,9 +61,9 @@ type Logger
     Logger{T<:LogOutput}(name::AbstractString, level::LogLevel, output::Array{T,1}) = (x = new(); x.name = name; x.level=level; x.output=output; x.parent=x)
 end
 
-show(io::IO, logger::Logger) = print(io, "Logger(", join([logger.name,
-                                                          logger.level,
-                                                          logger.output,
+show(io::IO, logger::Logger) = print(io, "Logger(", join([logger.name;
+                                                          logger.level;
+                                                          logger.output;
                                                           logger.parent.name], ","), ")")
 
 const _root = Logger("root", WARNING, STDERR)
