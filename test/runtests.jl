@@ -1,6 +1,4 @@
 using Logging: debug, info, warn
 include("log_test.jl")
-include("macro_test1.jl")
-include("macro_test2.jl")
-include("macro_test3.jl")
+include("macro_test.jl")
 include("test_hierarchy.jl")
