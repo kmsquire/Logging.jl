@@ -2,11 +2,7 @@ __precompile__()
 
 module Logging
 
-import Base: show, info, warn
-
-export debug, info, warn, err, critical,
-       @debug, @info, @warn, @err, @error, @critical, @log,
-       Logger,
+export Logger,
        LogLevel, DEBUG, INFO, WARNING, ERROR, CRITICAL, OFF,
        LogFacility,
        SysLog
@@ -72,10 +68,10 @@ type Logger
     Logger{T<:LogOutput}(name::AbstractString, level::LogLevel, output::Array{T,1}) = (x = new(); x.name = name; x.level=level; x.output=output; x.parent=x)
 end
 
-show(io::IO, logger::Logger) = print(io, "Logger(", join(Any[logger.name,
-                                                             logger.level,
-                                                             logger.output,
-                                                             logger.parent.name], ","), ")")
+Base.show(io::IO, logger::Logger) = print(io, "Logger(", join(Any[logger.name,
+                                                                  logger.level,
+                                                                  logger.output,
+                                                                  logger.parent.name], ","), ")")
 
 const _root = Logger("root", WARNING, STDERR)
 Logger(name::AbstractString;args...) = configure(Logger(name, WARNING, STDERR, _root); args...)
@@ -101,7 +97,7 @@ end
 for (fn,lvl,clr) in ((:debug,    DEBUG,    :cyan),
                      (:info,     INFO,     :blue),
                      (:warn,     WARNING,  :magenta),
-                     (:err,      ERROR,    :red),
+                     (:error,    ERROR,    :red),
                      (:critical, CRITICAL, :red))
 
     @eval function $fn(logger::Logger, msg...)
@@ -113,12 +109,11 @@ for (fn,lvl,clr) in ((:debug,    DEBUG,    :cyan),
     end
 
     @eval $fn(msg...) = $fn(_root, msg...)
-
 end
 
 @deprecate err Logging.error
 
-function configure(logger=_root; args...)
+function _configure(logger=_root; args...)
     for (tag, val) in args
         if tag == :parent
             logger.parent = parent = val::Logger
@@ -136,26 +131,108 @@ function configure(logger=_root; args...)
         tag == :level         ? (logger.level  = val::LogLevel) :
         tag == :override_info ? nothing :  # handled below
         tag == :parent        ? nothing :  # handled above
-                                (Base.error("Logging: unknown configure argument \"$tag\""))
+                                (throw(ArgumentError("Logging: unknown configure argument \"$tag\"")))
     end
 
     logger
 end
 
-override_info(;args...) = (:override_info, true) in args
+"""
+Module which contains versions of the logging functions which
+print a deprecation warning when used.
+
+This is useful for transitioning users to either call the qualified
+function names (e.g., `Logging.info`, `Logging.warn`, etc.) or explicitly
+import the functions.
+"""
+module _Deprecated
+
+import Logging
+
+deprecation_printed = false
+
+for fn in (:debug, :info, :warn, :error, :critical)
+    @eval function $fn(args...)
+        global deprecation_printed
+        if !deprecation_printed
+            Base.warn("""
+                In the future, `using Logging` will not import the following
+                logging functions:
+
+                    debug
+                    info
+                    warn
+                    error
+                    critical
+
+                You can either use these functions by qualifying them
+                (e.g., `Logging.debug(...)`, `Logging.warn(...)`, etc.),
+                or by explicitly importing them:
+
+                    using Logging
+                    import Logging: debug, info, warn, error, critical
+
+                """)
+            deprecation_printed = true
+        end
+
+        Logging.$fn(args...)
+    end
+end
+
+end # module _Deprecated
+
+function _imported_with_using()
+    return all(isdefined.(names(Logging)))
+end
+
+function _logging_funcs_imported()
+    # isdefined "reifies" any object that is defined, making it impossible
+    # it to override it via import.  Therefore, we don't check
+    # `info`, `warn`, and `error`, since these functions exist in
+    # Base and won't be overridden if we check them here.
+    return all(isdefined.([:debug, #=:info, :warn, :error,=# :critical]))
+end
+
+let _macros_loaded = false
+    global macros_loaded, set_macros_loaded
+    macros_loaded() = _macros_loaded
+    set_macros_loaded() = (_macros_loaded = true)
+end
+
+_src_dir = dirname(@__FILE__)
 
 macro configure(args...)
-    _args = gensym()
     quote
-        logger = Logging.configure($(args...))
-        if Logging.override_info($(args...))
-            function Base.info(msg::AbstractString...)
-                Logging.info(Logging._root, msg...)
+        logger = Logging._configure($(args...))
+
+        if Logging._imported_with_using() && !Logging._logging_funcs_imported()
+            # We assume that the user has not manually
+            # imported the Logging functions, and we import
+            # versions of these which print a deprecation warning
+            try
+                import Logging._Deprecated: info, warn, debug, error, critical
+            catch
+                Base.warn("Please call Logging.@configure from the top level (module) scope.")
             end
         end
-        include(joinpath(Pkg.dir("Logging"), "src", "logging_macros.jl"))
+
+        if !Logging.macros_loaded()
+            include(joinpath(Logging._src_dir, "logging_macros.jl"))
+            Logging.set_macros_loaded()
+        end
         logger
     end
+end
+
+function configure(args...; kwargs...)
+    throw(ErrorException("""
+        The functional form of Logging.configure(...) is no longer supported.
+        Instead, call
+
+            Logging.@configure(...)
+
+        """))
 end
 
 end # module

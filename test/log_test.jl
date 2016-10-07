@@ -6,11 +6,11 @@ using Logging
 
 function log_test()
     println("\nTesting function calls:\n")
-    debug("debug message")
-    info("info message")
-    warn("warning message")
-    err("error message")
-    critical("critical message")
+    Logging.debug("debug message")
+    Logging.info("info message")
+    Logging.warn("warning message")
+    Logging.err("error message")
+    Logging.critical("critical message")
 end
 
 function log_test2()
@@ -50,4 +50,3 @@ println("\nSetting level=CRITICAL")
 Logging.configure(level=CRITICAL)
 log_test()
 log_test2()
-
