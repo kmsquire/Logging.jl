@@ -20,11 +20,11 @@ using Logging
 # Logging.configure(level=WARNING)
 
 function log_test()
-    debug("debug message")
-    info("info message")
-    warn("warning message")
-    err("error message")
-    critical("critical message")
+    Logging.debug("debug message")
+    Logging.info("info message")
+    Logging.warn("warning message")
+    Logging.err("error message")
+    Logging.critical("critical message")
 end
 
 println("Setting level=DEBUG")
@@ -235,44 +235,5 @@ julia> mum_logger = Logger("Mum");
 julia> Logging.configure(mum_logger, level=INFO);
 julia> son_logger = Logger("Son", parent=mum_logger);
 julia> son_logger.level
-INFO
-```
-
-Notes
------
-* By default, `Logging.info` masks `Base.info`.  However, if `Base.info` is called before
-  `using Logging`, `info` will always refer to the `Base` version.
-
-  ```julia
-julia> info("Here's some info.")
-INFO: Here's some info.
-
-julia> using Logging
-Warning: using Logging.info in module Main conflicts with an existing identifier.
-
-julia> @Logging.configure(level=Logging.INFO)
-Logger(root,INFO,TTY(open, 0 bytes waiting),root)
-
-julia> info("Still using Base.info")
-INFO: Still using Base.info
-
-julia> Logging.info("You can still fully qualify Logging.info.")
-17-Jan 13:19:56:INFO:root:You can still fully qualify Logging.info.
-```
-
-  If this is not desirable, you may call `@Logging.configure` with `override_info=true`:
-
-  ```julia
-julia> info("Here's some info again.")
-INFO: Here's some info again.
-
-julia> using Logging
-Warning: using Logging.info in module Main conflicts with an existing identifier.
-
-julia> @Logging.configure(level=Logging.INFO, override_info=true)
-Warning: Method definition info(AbstractString...,) in module Base at util.jl:216 overwritten in module Main at /Users/kevin/.julia/v0.4/Logging/src/Logging.jl:85.
-Logger(root,INFO,TTY(open, 0 bytes waiting),root)
-
-julia> info("Now we're using Logging.info")
-17-Jan 13:17:20:INFO:root:Now we're using Logging.info
+INFO::Logging.LogLevel = 6
 ```
