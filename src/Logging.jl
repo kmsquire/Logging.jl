@@ -116,6 +116,8 @@ for (fn,lvl,clr) in ((:debug,    DEBUG,    :cyan),
 
 end
 
+@deprecate err Logging.error
+
 function configure(logger=_root; args...)
     for (tag, val) in args
         if tag == :parent
