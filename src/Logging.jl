@@ -1,13 +1,24 @@
+__precompile__()
+
 module Logging
 
 import Base: show, info, warn
 
 export debug, info, warn, err, critical, log,
-       @debug, @info, @warn, @err, @error, @critical, @log,
+       @debug, @info, @warn, @err, @error, @critical,
        Logger,
        LogLevel, DEBUG, INFO, WARNING, ERROR, CRITICAL, OFF,
        LogFacility,
        SysLog
+
+function __init__()
+    # Fix up _root output (issue #44)
+    # _root is a global Logger which is included in the precompiled image
+    # It's output goes to STDERR, but the actual STDERR object contained
+    # in the precompiled image is different than the one available at runtime,
+    # so we fix it by pointing to the correct one at runtime.
+    _root.output[1] = STDERR
+end
 
 @enum LogLevel OFF=-1 CRITICAL=2 ERROR WARNING INFO=6 DEBUG
 
