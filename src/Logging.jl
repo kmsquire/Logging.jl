@@ -74,7 +74,7 @@ Base.show(io::IO, logger::Logger) = print(io, "Logger(", join(Any[logger.name,
                                                                   logger.parent.name], ","), ")")
 
 const _root = Logger("root", WARNING, STDERR)
-Logger(name::AbstractString;args...) = configure(Logger(name, WARNING, STDERR, _root); args...)
+Logger(name::AbstractString;args...) = _configure(Logger(name, WARNING, STDERR, _root); args...)
 Logger() = Logger("logger")
 
 write_log(syslog::SysLog, color::Symbol, msg::AbstractString) = send(syslog.socket, syslog.ip, syslog.port, length(msg) > syslog.maxlength ? msg[1:syslog.maxlength] : msg)
@@ -194,10 +194,13 @@ function _logging_funcs_imported()
     return all(isdefined.([:debug, #=:info, :warn, :error,=# :critical]))
 end
 
-let _macros_loaded = false
-    global macros_loaded, set_macros_loaded
-    macros_loaded() = _macros_loaded
-    set_macros_loaded() = (_macros_loaded = true)
+function _macro_loaded(macroname)
+    expr = macroexpand(:($(macroname)("hi")))
+    return expr.head != :error
+end
+
+function _macros_loaded()
+    return all(_macro_loaded.([:@debug, :@info, :@warn, :@error, :@critical]))
 end
 
 _src_dir = dirname(@__FILE__)
@@ -217,9 +220,8 @@ macro configure(args...)
             end
         end
 
-        if !Logging.macros_loaded()
+        if !Logging._macros_loaded()
             include(joinpath(Logging._src_dir, "logging_macros.jl"))
-            Logging.set_macros_loaded()
         end
         logger
     end

@@ -4,7 +4,7 @@ using Base.Test
 using Logging
 
 # configure root logger
-Logging.configure(level=DEBUG)
+Logging.@configure(level=DEBUG)
 root = Logging._root
 
 
