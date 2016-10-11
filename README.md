@@ -23,7 +23,7 @@ function log_test()
     Logging.debug("debug message")
     Logging.info("info message")
     Logging.warn("warning message")
-    Logging.err("error message")
+    Logging.error("error message")
     Logging.critical("critical message")
 end
 
@@ -123,7 +123,7 @@ function macro_log_test()
     @debug("debug message")
     @info("info message")
     @warn("warning message")
-    @err("error message")
+    @error("error message")
     @critical("critical message")
 end
 
@@ -150,7 +150,7 @@ function macro_log_test()
     @debug("debug message")
     @info("info message")
     @warn("warning message")
-    @err("error message")
+    @error("error message")
     @critical("critical message")
 end
 
@@ -176,7 +176,7 @@ function macro_log_test()
     @debug("debug message")
     @info("info message")
     @warn("warning message")
-    @err("error message")
+    @error("error message")
     @critical("critical message")
 end
 
