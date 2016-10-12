@@ -4,8 +4,8 @@ module Logging
 
 import Base: show, info, warn
 
-export debug, info, warn, err, critical, log,
-       @debug, @info, @warn, @err, @error, @critical,
+export debug, info, warn, err, critical,
+       @debug, @info, @warn, @err, @error, @critical, @log,
        Logger,
        LogLevel, DEBUG, INFO, WARNING, ERROR, CRITICAL, OFF,
        LogFacility,
