@@ -1,9 +1,12 @@
-[![Build Status](https://travis-ci.org/kmsquire/Logging.jl.svg?branch=master)](https://travis-ci.org/kmsquire/Logging.jl)
-[![Logging](http://pkg.julialang.org/badges/Logging_0.4.svg)](http://pkg.julialang.org/?pkg=Logging)
-
-
 Logging.jl: Basic logging for Julia
 ===================================
+
+[![PkgEval: Julia v0.4](http://pkg.julialang.org/badges/Logging_0.4.svg)](http://pkg.julialang.org/?pkg=Logging) 
+[![PkgEval: Julia v0.5](http://pkg.julialang.org/badges/Logging_0.5.svg)](http://pkg.julialang.org/?pkg=Logging)
+[![PkgEval: Julia v0.6](http://pkg.julialang.org/badges/Logging_0.6.svg)](http://pkg.julialang.org/?pkg=Logging)
+
+[![TravisCI: Linux, OSX](https://travis-ci.org/kmsquire/Logging.jl.svg?branch=master)](https://travis-ci.org/kmsquire/Logging.jl)
+[![AppVeyorCI: Windows](https://ci.appveyor.com/api/projects/status/7cj5kaj8gcxmltho?svg=true)](https://ci.appveyor.com/project/kmsquire/logging-jl)
 
 This module provides basic logging facilities for Julia.  It was inspired somewhat by logging in Python.
 
