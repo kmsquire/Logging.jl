@@ -14,6 +14,37 @@ function __init__()
     # in the precompiled image is different than the one available at runtime,
     # so we fix it by pointing to the correct one at runtime.
     _root.output[1] = STDERR
+
+    if VERSION < v"0.6.0"
+        Base.warn("""
+                  The following Logging functions are no longer exported:
+
+                      debug
+                      info
+                      warn
+                      err
+                      error
+                      critical
+
+                  To use these logging functions, do one of the following:
+
+                  1. Import them:
+
+                      using Logging
+                      import Logging: debug, info, warn, error, critical
+
+                  2. Fully qualify them:
+
+                      using Logging
+
+                      Logging.debug("Debug message")
+                      Logging.info("The weather is nice today!")
+                      Logging.warn("Traffic is bad ahead.")
+                      Logging.error("Whoops?  Mistakes happen...")
+                      Logging.critical("Danger Will Robinson")
+
+                  """)
+    end
 end
 
 @enum LogLevel OFF=-1 CRITICAL=2 ERROR WARNING INFO=6 DEBUG
@@ -74,7 +105,7 @@ Base.show(io::IO, logger::Logger) = print(io, "Logger(", join(Any[logger.name,
                                                                   logger.parent.name], ","), ")")
 
 const _root = Logger("root", WARNING, STDERR)
-Logger(name::AbstractString;args...) = _configure(Logger(name, WARNING, STDERR, _root); args...)
+Logger(name::AbstractString;args...) = configure(Logger(name, WARNING, STDERR, _root); args...)
 Logger() = Logger("logger")
 
 write_log(syslog::SysLog, color::Symbol, msg::AbstractString) = send(syslog.socket, syslog.ip, syslog.port, length(msg) > syslog.maxlength ? msg[1:syslog.maxlength] : msg)
@@ -113,7 +144,7 @@ end
 
 @deprecate err Logging.error
 
-function _configure(logger=_root; args...)
+function configure(logger=_root; args...)
     for (tag, val) in args
         if tag == :parent
             logger.parent = parent = val::Logger
@@ -207,7 +238,7 @@ _src_dir = dirname(@__FILE__)
 
 macro configure(args...)
     quote
-        logger = Logging._configure($(args...))
+        logger = Logging.configure($(args...))
 
         if Logging._imported_with_using() && !Logging._logging_funcs_imported()
             # We assume that the user has not manually
@@ -225,16 +256,6 @@ macro configure(args...)
         end
         logger
     end
-end
-
-function configure(args...; kwargs...)
-    throw(ErrorException("""
-        The functional form of Logging.configure(...) is no longer supported.
-        Instead, call
-
-            Logging.@configure(...)
-
-        """))
 end
 
 end # module
