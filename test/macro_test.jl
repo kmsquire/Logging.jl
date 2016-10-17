@@ -1,5 +1,6 @@
 using Logging
 using Base.Test
+using Compat
 
 function test_log_macro_common(flags)
     for (macroname, isshown) in flags
