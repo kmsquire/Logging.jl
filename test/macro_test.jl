@@ -1,9 +1,10 @@
 using Logging
 using Base.Test
+using Compat
 
 function test_log_macro_common(flags)
     for (macroname, isshown) in flags
-        ex = Expr(:macrocall, symbol(macroname), "test message")
+        ex = Expr(:macrocall, Symbol(macroname), "test message")
         if isshown
             @test ex |> macroexpand != :nothing
         else
