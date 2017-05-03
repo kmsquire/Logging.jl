@@ -142,11 +142,17 @@ end
 
 override_info(;args...) = (:override_info, true) in args
 
+# Keyword arguments x=1 passed to macros are parsed as Expr(:(=), :x, 1) but
+# must be passed as Expr(:(kw), :x, 1) in Julia v0.6. 
+const kwarg_head = VERSION < v"0.6-" ? :(=) : :(kw)
+fix_kwarg(x::Symbol) = x
+fix_kwarg(e::Expr) = e.head == :(=) ? Expr(:(kw), e.args...) : e
+
 macro configure(args...)
     _args = gensym()
     quote
-        logger = Logging.configure($(args...))
-        if Logging.override_info($(args...))
+        logger = Logging.configure($([esc(fix_kwarg(a)) for a in args]...))
+        if Logging.override_info($([esc(fix_kwarg(a)) for a in args]...))
             function Base.info(msg::AbstractString...)
                 Logging.info(Logging._root, msg...)
             end

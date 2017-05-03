@@ -15,7 +15,7 @@ for (mac,fn,lvl) in ((:debug,    :(Logging.debug),    Logging.DEBUG),
         end
 
         if $lvl > level
-            :nothing
+            esc(:nothing)
         else
             Expr(:call, $fn, msg...)
         end
