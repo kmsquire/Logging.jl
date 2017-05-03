@@ -3,8 +3,16 @@
 module InnerModule
 
 import Logging
+@Logging.configure(level=DEBUG)
+
 using Compat
 using Base.Test
+
+function test_non_global_interpolation(y)
+    @info("y = $y")
+end
+
+test_non_global_interpolation(5)
 
 function test_log_macro_common(flags)
     for (macroname, isshown) in flags
@@ -17,7 +25,6 @@ function test_log_macro_common(flags)
     end
 end
 
-@Logging.configure(level=DEBUG)
 test_log_macro_common([(:@debug, true), (:@info, true), (:@warn, true),
     (:@err, true), (:@critical, true)])
 
