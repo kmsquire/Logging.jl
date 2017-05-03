@@ -2,6 +2,7 @@ __precompile__()
 
 module Logging
 
+using Compat: @static
 import Base: show, info, warn
 
 export debug, info, warn, err, critical,
@@ -144,9 +145,12 @@ override_info(;args...) = (:override_info, true) in args
 
 # Keyword arguments x=1 passed to macros are parsed as Expr(:(=), :x, 1) but
 # must be passed as Expr(:(kw), :x, 1) in Julia v0.6. 
-const kwarg_head = VERSION < v"0.6-" ? :(=) : :(kw)
-fix_kwarg(x::Symbol) = x
-fix_kwarg(e::Expr) = e.head == :(=) ? Expr(kwarg_head, e.args...) : e
+@static if VERSION < v"0.6-"
+    fix_kwarg(x) = x
+else
+    fix_kwarg(x::Symbol) = x
+    fix_kwarg(e::Expr) = e.head == :(=) ? Expr(:(kw), e.args...) : e
+end
 
 macro configure(args...)
     _args = gensym()
