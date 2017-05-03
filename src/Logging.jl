@@ -155,8 +155,8 @@ end
 macro configure(args...)
     _args = gensym()
     quote
-        logger = Logging.configure($([esc(fix_kwarg(a)) for a in args]...))
-        if Logging.override_info($([esc(fix_kwarg(a)) for a in args]...))
+        logger = Logging.configure($([fix_kwarg(a) for a in args]...))
+        if Logging.override_info($([fix_kwarg(a) for a in args]...))
             function Base.info(msg::AbstractString...)
                 Logging.info(Logging._root, msg...)
             end
