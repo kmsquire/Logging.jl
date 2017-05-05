@@ -2,6 +2,8 @@ __precompile__()
 
 module Logging
 
+using Compat: @static
+
 export Logger,
        LogLevel, DEBUG, INFO, WARNING, ERROR, CRITICAL, OFF,
        LogFacility,
@@ -205,9 +207,18 @@ end
 
 _src_dir = dirname(@__FILE__)
 
+# Keyword arguments x=1 passed to macros are parsed as Expr(:(=), :x, 1) but
+# must be passed as Expr(:(kw), :x, 1) in Julia v0.6.
+@static if VERSION < v"0.6-"
+    fix_kwarg(x) = x
+else
+    fix_kwarg(x::Symbol) = x
+    fix_kwarg(e::Expr) = e.head == :(=) ? Expr(:(kw), e.args...) : e
+end
+
 macro configure(args...)
     quote
-        logger = Logging._configure($(args...))
+        logger = Logging._configure($([fix_kwarg(a) for a in args]...))
 
         if Logging._imported_with_using() && !Logging._logging_funcs_imported()
             # We assume that the user has not manually
