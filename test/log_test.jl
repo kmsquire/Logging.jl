@@ -1,4 +1,6 @@
-using Logging
+# (use importall, rather than using, to override Base.info, Base.warn)
+
+importall Logging
 
 # So that macro tests work
 # Otherwise, log_test2 uses the default log level of WARNING

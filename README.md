@@ -18,7 +18,10 @@ Usage
 If `log_test.jl` contains
 
 ```julia
-using Logging
+# (use importall, rather than using, to override Base.info, Base.warn)
+
+importall Logging
+
 # default:
 # Logging.configure(level=WARNING)
 
