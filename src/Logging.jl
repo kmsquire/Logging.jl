@@ -3,10 +3,9 @@ __precompile__()
 module Logging
 
 using Compat: @static
-import Base: show, info, warn
+import Base: show
 
-export debug, info, warn, err, critical,
-       @debug, @info, @warn, @err, @error, @critical, @log,
+export @debug, @info, @warn, @err, @error, @critical, @log,
        Logger,
        LogLevel, DEBUG, INFO, WARNING, ERROR, CRITICAL, OFF,
        LogFacility,
@@ -103,6 +102,7 @@ for (fn,lvl,clr) in ((:debug,    DEBUG,    :cyan),
                      (:info,     INFO,     :blue),
                      (:warn,     WARNING,  :magenta),
                      (:err,      ERROR,    :red),
+                     (:error,    ERROR,    :red),
                      (:critical, CRITICAL, :red))
 
     @eval function $fn(logger::Logger, msg...)
@@ -127,43 +127,98 @@ function configure(logger=_root; args...)
     end
 
     for (tag, val) in args
-        tag == :io            ? typeof(val) <: AbstractArray ? (logger.output = val) :
-                                                               (logger.output = [val::LogOutput]) :
-        tag == :output        ? typeof(val) <: AbstractArray ? (logger.output = val) :
-                                                               (logger.output = [val::LogOutput]) :
-        tag == :filename      ? (logger.output = [open(val, "a")]) :
-        tag == :level         ? (logger.level  = val::LogLevel) :
-        tag == :override_info ? nothing :  # handled below
-        tag == :parent        ? nothing :  # handled above
-                                (Base.error("Logging: unknown configure argument \"$tag\""))
+        tag == :io             ? typeof(val) <: AbstractArray ? (logger.output = val) :
+                                                                (logger.output = [val::LogOutput]) :
+        tag == :output         ? typeof(val) <: AbstractArray ? (logger.output = val) :
+                                                                (logger.output = [val::LogOutput]) :
+        tag == :filename       ? (logger.output = [open(val, "a")]) :
+        tag == :level          ? (logger.level  = val::LogLevel) :
+        tag == :override_info  ? nothing :  # handled below
+        tag == :override_warn  ? nothing :  # handled below
+        tag == :override_error ? nothing :  # handled below
+        tag == :export_all     ? nothing :  # handled below
+        tag == :parent         ? nothing :  # handled above
+                                 (throw(ArgumentError("Logging: unknown configure argument \"$tag\"=\"$val\"")))
     end
 
     logger
 end
 
-override_info(;args...) = (:override_info, true) in args
-
 # Keyword arguments x=1 passed to macros are parsed as Expr(:(=), :x, 1) but
-# must be passed as Expr(:(kw), :x, 1) in Julia v0.6. 
+# must be passed as Expr(:(kw), :x, 1) in Julia v0.6.
 @static if VERSION < v"0.6-"
     fix_kwarg(x) = x
+
+    override_info(args) = (:override_info, true) in args || (:export_all, true) in args
+    override_warn(args) = (:override_warn, true) in args || (:export_all, true) in args
+    override_error(args) = (:override_error, true) in args
+    export_all(args) = (println(args);(:export_all, true) in args)
 else
     fix_kwarg(x::Symbol) = x
     fix_kwarg(e::Expr) = e.head == :(=) ? Expr(:(kw), e.args...) : e
+
+    override_info(args) = :(override_info = true) in args || :(export_all = true) in args
+    override_warn(args) = :(override_warn = true) in args || :(export_all = true) in args
+    override_error(args) = :(override_error = true) in args
+    export_all(args) = :(export_all = true) in args
 end
 
 macro configure(args...)
-    _args = gensym()
-    quote
+    expr = quote
         logger = Logging.configure($([fix_kwarg(a) for a in args]...))
-        if Logging.override_info($([fix_kwarg(a) for a in args]...))
-            function Base.info(msg::AbstractString...)
-                Logging.info(Logging._root, msg...)
-            end
-        end
-        include(joinpath(Pkg.dir("Logging"), "src", "logging_macros.jl"))
-        logger
     end
+
+    if Logging.override_info(args)
+        push!(expr.args,
+              :(function Base.info(msg::AbstractString)
+                  Logging.info(Logging._root, msg...)
+              end),
+              :(function Base.info(msg::AbstractString...)
+                  Logging.info(Logging._root, msg...)
+              end))
+    end
+
+    if Logging.override_warn(args)
+        push!(expr.args,
+              :(function Base.warn(msg::AbstractString)
+                  Logging.warn(Logging._root, msg...)
+              end),
+              :(function Base.warn(msg::AbstractString...)
+                  Logging.warn(Logging._root, msg...)
+              end))
+    end
+
+    if Logging.override_error(args)
+        push!(expr.args,
+              :(function Base.error(msg::AbstractString)
+                  Logging.error(Logging._root, msg)
+              end),
+              :(function Base.error(msg::AbstractString...)
+                Logging.error(Logging._root, msg...)
+              end))
+    end
+
+    if Logging.export_all(args)
+        debug = :debug
+        err = :err
+        critical = :critical
+        push!(expr.args,
+            :(function $(esc(debug))(msg::AbstractString...)
+                Logging.debug(Logging._root, msg...)
+            end),
+            :(function $(esc(err))(msg::AbstractString...)
+                Logging.err(Logging._root, msg...)
+            end),
+            :(function $(esc(critical))(msg::AbstractString...)
+                Logging.critical(Logging._root, msg...)
+            end))
+    end
+
+    push!(expr.args,
+          :(include(joinpath(Pkg.dir("Logging"), "src", "logging_macros.jl"))),
+          :(logger))
+
+    expr
 end
 
 end # module
