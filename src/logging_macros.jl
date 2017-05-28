@@ -4,7 +4,7 @@ for (mac,fn,lvl) in ((:debug,    :(Logging.debug),    Logging.DEBUG),
                      (:info,     :(Logging.info),     Logging.INFO),
                      (:warn,     :(Logging.warn),     Logging.WARNING),
                      (:err,      :(Logging.err),      Logging.ERROR),
-                     (:error,    :(Logging.err),      Logging.ERROR),
+                     (:error,    :(Logging.error),    Logging.ERROR),
                      (:critical, :(Logging.critical), Logging.CRITICAL))
 
     @eval macro $mac(msg...)

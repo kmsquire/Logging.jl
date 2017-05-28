@@ -13,26 +13,50 @@ function test_log_macro_common(flags)
     end
 end
 
-@Logging.configure(level=DEBUG)
+module TestDebug
+using Logging
+import ..test_log_macro_common
+Logging.@configure(level=DEBUG)
 test_log_macro_common([(:@debug, true), (:@info, true), (:@warn, true),
-    (:@err, true), (:@critical, true)])
+    (:@error, true), (:@critical, true)])
+end
 
-@Logging.configure(level=INFO)
+module TestInfo
+using Logging
+import ..test_log_macro_common
+Logging.@configure(level=INFO)
 test_log_macro_common([(:@debug, false), (:@info, true), (:@warn, true),
-    (:@err, true), (:@critical, true)])
+    (:@error, true), (:@critical, true)])
+end
 
-@Logging.configure(level=WARNING)
+module TestWarning
+using Logging
+import ..test_log_macro_common
+Logging.@configure(level=WARNING)
 test_log_macro_common([(:@debug, false), (:@info, false), (:@warn, true),
-    (:@err, true), (:@critical, true)])
+    (:@error, true), (:@critical, true)])
+end
 
-@Logging.configure(level=ERROR)
+module TestError
+using Logging
+import ..test_log_macro_common
+Logging.@configure(level=ERROR)
 test_log_macro_common([(:@debug, false), (:@info, false), (:@warn, false),
-    (:@err, true), (:@critical, true)])
+    (:@error, true), (:@critical, true)])
+end
 
-@Logging.configure(level=CRITICAL)
+module TestCritical
+using Logging
+import ..test_log_macro_common
+Logging.@configure(level=CRITICAL)
 test_log_macro_common([(:@debug, false), (:@info, false), (:@warn, false),
-    (:@err, false), (:@critical, true)])
+    (:@error, false), (:@critical, true)])
+end
 
-@Logging.configure(level=OFF)
+module TestOff
+using Logging
+import ..test_log_macro_common
+Logging.@configure(level=OFF)
 test_log_macro_common([(:@debug, false), (:@info, false), (:@warn, false),
-    (:@err, false), (:@critical, false)])
+    (:@error, false), (:@critical, false)])
+end
