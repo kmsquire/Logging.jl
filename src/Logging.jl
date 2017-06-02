@@ -2,8 +2,6 @@ __precompile__()
 
 module Logging
 
-using Compat: @static
-
 export Logger,
        LogLevel, DEBUG, INFO, WARNING, ERROR, CRITICAL, OFF,
        LogFacility,
@@ -209,7 +207,7 @@ _src_dir = dirname(@__FILE__)
 
 # Keyword arguments x=1 passed to macros are parsed as Expr(:(=), :x, 1) but
 # must be passed as Expr(:(kw), :x, 1) in Julia v0.6.
-@static if VERSION < v"0.6-"
+if VERSION < v"0.6-"
     fix_kwarg(x) = x
 else
     fix_kwarg(x::Symbol) = x
