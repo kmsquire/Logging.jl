@@ -90,7 +90,7 @@ function log(syslog::SysLog, level::LogLevel, color::Symbol, logger_name::Abstra
     # syslog needs a timestamp in the form: YYYY-MM-DDTHH:MM:SS-TZ:TZ
     t = time()
     timestamp = string(Libc.strftime("%Y-%m-%dT%H:%M:%S",t), Libc.strftime("%z",t)[1:end-2], ":", Libc.strftime("%z",t)[end-1:end])
-    logstring = string("<", (UInt16(syslog.facility) << 3) + UInt16(level), ">1 ", timestamp, " ", syslog.machine, " ", syslog.user, " - - - ", level, ":", logger_name,":", msg...)
+    logstring = string("<", (UInt16(syslog.facility) << 3) + UInt16(level), ">1 ", timestamp, " ", syslog.machine, " ", syslog.user, " - - - ", level, ":", logger_name,":",getpid(),":", msg...)
     write_log(syslog, color, logstring)
 end
 
